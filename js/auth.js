@@ -32,9 +32,12 @@ function handleLogin(e) {
     
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+
+    console.log('Attempting login with:', { email, password });
     
     // Get users from localStorage
     const users = JSON.parse(localStorage.getItem('users') || '[]');
+    console.log('Current registered users:', users);
     
     // Find user
     const user = users.find(u => u.email === email && u.password === password);
@@ -69,9 +72,12 @@ function handleSignup(e) {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const userType = document.getElementById('userType').value;
+
+    console.log('Attempting signup with:', { name, email, password, userType });
     
     // Get users from localStorage
     const users = JSON.parse(localStorage.getItem('users') || '[]');
+    console.log('Current registered users:', users);
     
     // Check if user already exists
     if (users.find(u => u.email === email)) {
