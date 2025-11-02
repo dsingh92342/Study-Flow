@@ -82,6 +82,29 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (!checkAuth('provider')) return;
             
+            // Check if modal elements exist before adding listeners
+            const confirmAcceptBtn = document.getElementById('confirmAccept');
+            if (confirmAcceptBtn) {
+                confirmAcceptBtn.addEventListener('click', function() {
+                    if (!currentJobId) return;
+
+                    const currentUser = getCurrentUser();
+                    if (!currentUser) {
+                        alert('Session expired. Please login again.');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    
+                    if (acceptJob(currentJobId, currentUser.id)) {
+                        alert('Job accepted successfully!');
+                        closeModal();
+                        loadBrowseJobs();
+                    } else {
+                        alert('Error accepting job. Please try again.');
+                    }
+                });
+            }
+            
             loadBrowseJobs();
             
             document.getElementById('filterSubject').addEventListener('change', loadBrowseJobs);
@@ -174,18 +197,6 @@
             currentJobId = null;
         }
 
-        document.getElementById('confirmAccept').addEventListener('click', function() {
-            if (!currentJobId) return;
-
-            const currentUser = getCurrentUser();
-            if (acceptJob(currentJobId, currentUser.id)) {
-                alert('Job accepted successfully!');
-                closeModal();
-                loadBrowseJobs();
-            } else {
-                alert('Error accepting job. Please try again.');
-            }
-        });
     </script>
 </body>
 </html>

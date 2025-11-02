@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function checkAuthStatus() {
     const currentUser = getCurrentUser();
-    if (currentUser && window.location.pathname.includes('login.html') || 
-        window.location.pathname.includes('signup.html')) {
+    const path = window.location.pathname;
+    if (currentUser && (path.includes('login.html') || path.includes('signup.html'))) {
         // Redirect to dashboard if already logged in
         window.location.href = currentUser.userType === 'provider' 
             ? 'dashboard-provider.html' 
@@ -139,11 +139,17 @@ function showAlert(message, type = 'info') {
     
     // Insert alert
     const form = document.querySelector('form') || document.body;
-    form.insertBefore(alert, form.firstChild);
+    if (form) {
+        form.insertBefore(alert, form.firstChild);
+    } else {
+        document.body.insertBefore(alert, document.body.firstChild);
+    }
     
     // Auto remove after 5 seconds
     setTimeout(() => {
-        alert.remove();
+        if (alert.parentNode) {
+            alert.remove();
+        }
     }, 5000);
 }
 

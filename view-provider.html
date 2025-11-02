@@ -73,16 +73,27 @@
     </div>
 
     <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
     <script src="js/portfolio.js"></script>
     <script src="js/jobs.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Allow viewing without login, but check if logged in as student
+            const currentUser = getCurrentUser();
+            if (!currentUser || currentUser.userType !== 'student') {
+                // Still allow viewing, but don't enforce login
+            }
+            
             const urlParams = new URLSearchParams(window.location.search);
             const providerId = urlParams.get('id');
             
             if (!providerId) {
                 alert('Provider not found');
-                window.location.href = 'dashboard-student.html';
+                if (currentUser && currentUser.userType === 'student') {
+                    window.location.href = 'dashboard-student.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
                 return;
             }
             

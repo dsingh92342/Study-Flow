@@ -114,12 +114,20 @@
 
     <script src="js/auth.js"></script>
     <script src="js/jobs.js"></script>
+    <script src="js/dashboard.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (!checkAuth('student')) return;
 
             document.getElementById('postJobForm').addEventListener('submit', function(e) {
                 e.preventDefault();
+                
+                const currentUser = getCurrentUser();
+                if (!currentUser) {
+                    alert('Session expired. Please login again.');
+                    window.location.href = 'login.html';
+                    return;
+                }
                 
                 const jobData = {
                     title: document.getElementById('title').value,
@@ -130,8 +138,8 @@
                     pages: document.getElementById('pages').value,
                     format: document.getElementById('format').value,
                     status: 'pending',
-                    postedBy: getCurrentUser().id,
-                    postedByName: getCurrentUser().name,
+                    postedBy: currentUser.id,
+                    postedByName: currentUser.name,
                     acceptedBy: null,
                     createdAt: new Date().toISOString()
                 };
