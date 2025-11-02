@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provider Dashboard - Study Flow</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-book-reader"></i>
+                <span>Study Flow</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="browse-jobs.html">Browse Jobs</a>
+                <a href="portfolio.html">My Portfolio</a>
+                <a href="profile.html">My Profile</a>
+                <a href="#" id="userName">User</a>
+                <a href="#" onclick="logout(); return false;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Provider Dashboard</h1>
+            <a href="browse-jobs.html" class="btn-primary">
+                <i class="fas fa-search"></i> Browse Available Jobs
+            </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="activeJobs">0</h3>
+                    <p>Active Jobs</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="completedJobs">0</h3>
+                    <p>Completed</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="averageRating">0.0</h3>
+                    <p>Average Rating</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalEarnings">$0</h3>
+                    <p>Total Earnings</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">My Active Jobs</div>
+        <div id="jobsContainer" class="cards-grid">
+            <!-- Jobs will be loaded here -->
+        </div>
+
+        <div id="noJobs" style="display: none; text-align: center; padding: 40px;">
+            <i class="fas fa-briefcase" style="font-size: 4rem; color: var(--gray); margin-bottom: 20px;"></i>
+            <h3 style="color: var(--gray); margin-bottom: 10px;">No active jobs</h3>
+            <p style="color: var(--gray); margin-bottom: 30px;">Browse available jobs and start earning!</p>
+            <a href="browse-jobs.html" class="btn-primary">Browse Jobs</a>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/jobs.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        // Load provider dashboard data
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuth('provider')) return;
+            loadProviderDashboard();
+            document.getElementById('userName').textContent = getCurrentUser().name;
+        });
+    </script>
+</body>
+</html>

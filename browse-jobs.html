@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Jobs - Study Flow</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-book-reader"></i>
+                <span>Study Flow</span>
+            </div>
+            <div class="nav-links">
+                <a href="dashboard-provider.html">Dashboard</a>
+                <a href="portfolio.html">Portfolio</a>
+                <a href="profile.html">Profile</a>
+                <a href="#" onclick="logout(); return false;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Browse Available Jobs</h1>
+            <div style="display: flex; gap: 10px;">
+                <select id="filterSubject" class="form-group" style="padding: 12px; border: 2px solid var(--light-gray); border-radius: var(--border-radius);">
+                    <option value="">All Subjects</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Science">Science</option>
+                    <option value="English">English</option>
+                    <option value="History">History</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Business">Business</option>
+                </select>
+                <select id="filterBudget" class="form-group" style="padding: 12px; border: 2px solid var(--light-gray); border-radius: var(--border-radius);">
+                    <option value="">All Budgets</option>
+                    <option value="low">Under $50</option>
+                    <option value="medium">$50 - $100</option>
+                    <option value="high">$100+</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="jobsContainer" class="cards-grid">
+            <!-- Jobs will be loaded here -->
+        </div>
+
+        <div id="noJobs" style="display: none; text-align: center; padding: 40px;">
+            <i class="fas fa-search" style="font-size: 4rem; color: var(--gray); margin-bottom: 20px;"></i>
+            <h3 style="color: var(--gray);">No jobs available</h3>
+            <p style="color: var(--gray);">Check back later for new assignments!</p>
+        </div>
+    </div>
+
+    <!-- Accept Job Modal -->
+    <div id="acceptModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Accept Assignment</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent">
+                <!-- Modal content will be loaded here -->
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn-primary" id="confirmAccept">Accept Assignment</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/jobs.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        let currentJobId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuth('provider')) return;
+            
+            loadBrowseJobs();
+            
+            document.getElementById('filterSubject').addEventListener('change', loadBrowseJobs);
+            document.getElementById('filterBudget').addEventListener('change', loadBrowseJobs);
+        });
+
+        function loadBrowseJobs() {
+            const jobs = getJobs();
+            const currentUser = getCurrentUser();
+            const filterSubject = document.getElementById('filterSubject').value;
+            const filterBudget = document.getElementById('filterBudget').value;
+            
+            // Filter jobs
+            let availableJobs = jobs.filter(job => 
+                job.status === 'pending' && 
+                job.postedBy !== currentUser.id &&
+                (!filterSubject || job.subject === filterSubject) &&
+                (!filterBudget || 
+                    (filterBudget === 'low' && job.budget < 50) ||
+                    (filterBudget === 'medium' && job.budget >= 50 && job.budget <= 100) ||
+                    (filterBudget === 'high' && job.budget > 100)
+                )
+            );
+
+            const container = document.getElementById('jobsContainer');
+            const noJobs = document.getElementById('noJobs');
+            
+            if (availableJobs.length === 0) {
+                container.style.display = 'none';
+                noJobs.style.display = 'block';
+                return;
+            }
+
+            container.style.display = 'grid';
+            noJobs.style.display = 'none';
+            
+            container.innerHTML = availableJobs.map(job => `
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">${job.title}</h3>
+                            <span class="card-badge badge-pending">${job.subject}</span>
+                        </div>
+                    </div>
+                    <div class="card-description">${job.description}</div>
+                    <div class="card-meta">
+                        <span><i class="fas fa-user"></i> ${job.postedByName}</span>
+                        <span><i class="fas fa-calendar"></i> ${formatDate(job.deadline)}</span>
+                        ${job.pages ? `<span><i class="fas fa-file-alt"></i> ${job.pages}</span>` : ''}
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-price">$${job.budget.toFixed(2)}</div>
+                        <button class="btn-primary btn-small" onclick="showAcceptModal('${job.id}')">
+                            <i class="fas fa-check"></i> Accept
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showAcceptModal(jobId) {
+            const jobs = getJobs();
+            const job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+
+            currentJobId = jobId;
+            
+            const providerEarnings = (job.budget * 0.8).toFixed(2);
+            const platformFee = (job.budget * 0.2).toFixed(2);
+
+            document.getElementById('modalContent').innerHTML = `
+                <p><strong>Title:</strong> ${job.title}</p>
+                <p><strong>Subject:</strong> ${job.subject}</p>
+                <p><strong>Description:</strong> ${job.description}</p>
+                <p><strong>Deadline:</strong> ${formatDate(job.deadline)}</p>
+                ${job.pages ? `<p><strong>Requirements:</strong> ${job.pages}, ${job.format}</p>` : ''}
+                <div style="margin-top: 20px; padding: 15px; background: var(--light-gray); border-radius: var(--border-radius);">
+                    <p><strong>Payment Breakdown:</strong></p>
+                    <p>Total Budget: $${job.budget.toFixed(2)}</p>
+                    <p>Your Earnings (80%): <strong style="color: var(--success-color);">$${providerEarnings}</strong></p>
+                    <p>Platform Fee (20%): $${platformFee}</p>
+                </div>
+            `;
+
+            document.getElementById('acceptModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('acceptModal').classList.remove('active');
+            currentJobId = null;
+        }
+
+        document.getElementById('confirmAccept').addEventListener('click', function() {
+            if (!currentJobId) return;
+
+            const currentUser = getCurrentUser();
+            if (acceptJob(currentJobId, currentUser.id)) {
+                alert('Job accepted successfully!');
+                closeModal();
+                loadBrowseJobs();
+            } else {
+                alert('Error accepting job. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

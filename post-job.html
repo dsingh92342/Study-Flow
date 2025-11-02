@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Assignment - Study Flow</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-book-reader"></i>
+                <span>Study Flow</span>
+            </div>
+            <div class="nav-links">
+                <a href="dashboard-student.html">Dashboard</a>
+                <a href="#" onclick="logout(); return false;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Post New Assignment</h1>
+        </div>
+
+        <form id="postJobForm" class="post-form">
+            <div class="form-section">
+                <h3>Assignment Details</h3>
+                
+                <div class="form-group">
+                    <label for="title">
+                        <i class="fas fa-heading"></i> Assignment Title
+                    </label>
+                    <input type="text" id="title" name="title" placeholder="e.g., Research Paper on Climate Change" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">
+                        <i class="fas fa-book"></i> Subject
+                    </label>
+                    <select id="subject" name="subject" required>
+                        <option value="">Select Subject</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Science">Science</option>
+                        <option value="English">English</option>
+                        <option value="History">History</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Business">Business</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">
+                        <i class="fas fa-align-left"></i> Description
+                    </label>
+                    <textarea id="description" name="description" placeholder="Describe the assignment requirements in detail..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="deadline">
+                        <i class="fas fa-calendar-alt"></i> Deadline
+                    </label>
+                    <input type="datetime-local" id="deadline" name="deadline" required>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Budget & Payment</h3>
+                
+                <div class="form-group">
+                    <label for="budget">
+                        <i class="fas fa-dollar-sign"></i> Budget ($)
+                    </label>
+                    <input type="number" id="budget" name="budget" min="10" step="5" placeholder="Minimum $10" required>
+                    <small style="color: var(--gray); margin-top: 5px; display: block;">
+                        Note: Provider will receive 80% of this amount (20% platform fee)
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Additional Requirements</h3>
+                
+                <div class="form-group">
+                    <label for="pages">
+                        <i class="fas fa-file-alt"></i> Number of Pages/Word Count
+                    </label>
+                    <input type="text" id="pages" name="pages" placeholder="e.g., 5 pages or 1500 words">
+                </div>
+
+                <div class="form-group">
+                    <label for="format">
+                        <i class="fas fa-file-pdf"></i> Format
+                    </label>
+                    <select id="format" name="format">
+                        <option value="Any">Any</option>
+                        <option value="PDF">PDF</option>
+                        <option value="Word">Word Document</option>
+                        <option value="PowerPoint">PowerPoint</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary btn-block btn-large">
+                <i class="fas fa-paper-plane"></i> Post Assignment
+            </button>
+        </form>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/jobs.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuth('student')) return;
+
+            document.getElementById('postJobForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const jobData = {
+                    title: document.getElementById('title').value,
+                    subject: document.getElementById('subject').value,
+                    description: document.getElementById('description').value,
+                    deadline: document.getElementById('deadline').value,
+                    budget: parseFloat(document.getElementById('budget').value),
+                    pages: document.getElementById('pages').value,
+                    format: document.getElementById('format').value,
+                    status: 'pending',
+                    postedBy: getCurrentUser().id,
+                    postedByName: getCurrentUser().name,
+                    acceptedBy: null,
+                    createdAt: new Date().toISOString()
+                };
+
+                if (postJob(jobData)) {
+                    alert('Assignment posted successfully!');
+                    window.location.href = 'dashboard-student.html';
+                } else {
+                    alert('Error posting assignment. Please try again.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

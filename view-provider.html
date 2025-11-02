@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provider Profile - Study Flow</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-book-reader"></i>
+                <span>Study Flow</span>
+            </div>
+            <div class="nav-links">
+                <a href="dashboard-student.html">Dashboard</a>
+                <a href="#" onclick="logout(); return false;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="profile-header">
+        <div class="container">
+            <div class="profile-content" id="profileContent">
+                <!-- Profile content loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard container">
+        <div class="profile-body">
+            <div>
+                <div class="profile-section">
+                    <h3>Portfolio</h3>
+                    <div id="profilePortfolio" class="portfolio-grid">
+                        <!-- Portfolio items loaded here -->
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h3>Completed Jobs</h3>
+                    <div id="completedJobsList" class="cards-grid">
+                        <!-- Completed jobs loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="profile-section">
+                    <h3>Statistics</h3>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: var(--light-gray); border-radius: var(--border-radius);">
+                            <span><strong>Total Jobs Completed:</strong></span>
+                            <span id="statCompleted">0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: var(--light-gray); border-radius: var(--border-radius);">
+                            <span><strong>Average Rating:</strong></span>
+                            <span id="statRating" class="rating">
+                                <span id="ratingStars"></span>
+                                <span id="ratingText" class="rating-text"></span>
+                            </span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: var(--light-gray); border-radius: var(--border-radius);">
+                            <span><strong>Member Since:</strong></span>
+                            <span id="memberSince"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/portfolio.js"></script>
+    <script src="js/jobs.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const providerId = urlParams.get('id');
+            
+            if (!providerId) {
+                alert('Provider not found');
+                window.location.href = 'dashboard-student.html';
+                return;
+            }
+            
+            loadProviderProfile(providerId);
+        });
+
+        function loadProviderProfile(providerId) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const provider = users.find(u => u.id === providerId && u.userType === 'provider');
+            
+            if (!provider) {
+                alert('Provider not found');
+                window.location.href = 'dashboard-student.html';
+                return;
+            }
+
+            // Load profile header
+            const rating = provider.rating || 0;
+            const ratingStars = generateStars(rating);
+            
+            document.getElementById('profileContent').innerHTML = `
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-info">
+                    <h2>${provider.name}</h2>
+                    <div class="rating" style="margin: 15px 0;">
+                        ${ratingStars}
+                        <span class="rating-text">(${rating > 0 ? rating + ' / 5.0' : 'No ratings yet'})</span>
+                    </div>
+                    <div class="profile-meta">
+                        <span><i class="fas fa-briefcase"></i> ${provider.completedJobs || 0} Jobs Completed</span>
+                        <span><i class="fas fa-calendar"></i> Joined ${new Date(provider.createdAt).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `;
+
+            // Load statistics
+            document.getElementById('statCompleted').textContent = provider.completedJobs || 0;
+            document.getElementById('ratingStars').innerHTML = ratingStars;
+            document.getElementById('ratingText').textContent = rating > 0 ? `(${rating} / 5.0)` : 'No ratings yet';
+            document.getElementById('memberSince').textContent = new Date(provider.createdAt).toLocaleDateString();
+
+            // Load portfolio
+            const portfolio = getPortfolio(providerId);
+            const portfolioContainer = document.getElementById('profilePortfolio');
+            
+            if (portfolio.length === 0) {
+                portfolioContainer.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 20px;">No portfolio items available.</p>';
+            } else {
+                portfolioContainer.innerHTML = portfolio.map(item => `
+                    <div class="portfolio-item">
+                        <div class="portfolio-image">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="portfolio-content">
+                            <h4>${item.title}</h4>
+                            <p><strong>Subject:</strong> ${item.subject}</p>
+                            <p>${item.description}</p>
+                            ${item.link ? `<p><a href="${item.link}" target="_blank" style="color: var(--primary-color);"><i class="fas fa-external-link-alt"></i> View Work</a></p>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Load completed jobs
+            const jobs = getJobs();
+            const completedJobs = jobs.filter(j => j.acceptedBy === providerId && j.status === 'completed');
+            const jobsContainer = document.getElementById('completedJobsList');
+
+            if (completedJobs.length === 0) {
+                jobsContainer.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 20px;">No completed jobs to display.</p>';
+            } else {
+                jobsContainer.innerHTML = completedJobs.map(job => `
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">${job.title}</h3>
+                            <span class="card-badge badge-completed">Completed</span>
+                        </div>
+                        <div class="card-meta">
+                            <span><i class="fas fa-book"></i> ${job.subject}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            let stars = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            
+            return stars;
+        }
+    </script>
+</body>
+</html>

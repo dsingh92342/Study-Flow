@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio - Study Flow</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-book-reader"></i>
+                <span>Study Flow</span>
+            </div>
+            <div class="nav-links">
+                <a href="dashboard-provider.html">Dashboard</a>
+                <a href="browse-jobs.html">Browse Jobs</a>
+                <a href="profile.html">Profile</a>
+                <a href="#" onclick="logout(); return false;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">My Portfolio</h1>
+            <button class="btn-primary" onclick="showAddPortfolioModal()">
+                <i class="fas fa-plus"></i> Add Portfolio Item
+            </button>
+        </div>
+
+        <p style="margin-bottom: 30px; color: var(--gray);">
+            Showcase your best work to attract more clients. Upload samples of your previous assignments.
+        </p>
+
+        <div id="portfolioContainer" class="portfolio-grid">
+            <!-- Portfolio items will be loaded here -->
+        </div>
+
+        <div id="noPortfolio" style="display: none; text-align: center; padding: 40px;">
+            <i class="fas fa-folder-open" style="font-size: 4rem; color: var(--gray); margin-bottom: 20px;"></i>
+            <h3 style="color: var(--gray); margin-bottom: 10px;">No portfolio items yet</h3>
+            <p style="color: var(--gray); margin-bottom: 30px;">Add your first portfolio item to showcase your skills!</p>
+            <button class="btn-primary" onclick="showAddPortfolioModal()">Add Portfolio Item</button>
+        </div>
+    </div>
+
+    <!-- Add Portfolio Modal -->
+    <div id="portfolioModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Portfolio Item</h3>
+                <button class="modal-close" onclick="closePortfolioModal()">&times;</button>
+            </div>
+            <form id="portfolioForm">
+                <div class="form-group">
+                    <label for="portfolioTitle">
+                        <i class="fas fa-heading"></i> Title
+                    </label>
+                    <input type="text" id="portfolioTitle" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="portfolioSubject">
+                        <i class="fas fa-book"></i> Subject
+                    </label>
+                    <select id="portfolioSubject" name="subject" required>
+                        <option value="">Select Subject</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Science">Science</option>
+                        <option value="English">English</option>
+                        <option value="History">History</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Business">Business</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="portfolioDescription">
+                        <i class="fas fa-align-left"></i> Description
+                    </label>
+                    <textarea id="portfolioDescription" name="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="portfolioLink">
+                        <i class="fas fa-link"></i> Link (Optional - Google Drive, Dropbox, etc.)
+                    </label>
+                    <input type="url" id="portfolioLink" name="link" placeholder="https://...">
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn-outline" onclick="closePortfolioModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="submitPortfolioBtn">Add Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/portfolio.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuth('provider')) return;
+            loadPortfolio();
+        });
+
+        function showAddPortfolioModal() {
+            document.getElementById('modalTitle').textContent = 'Add Portfolio Item';
+            document.getElementById('portfolioForm').reset();
+            document.getElementById('submitPortfolioBtn').textContent = 'Add Item';
+            document.getElementById('portfolioForm').setAttribute('data-mode', 'add');
+            document.getElementById('portfolioModal').classList.add('active');
+        }
+
+        function closePortfolioModal() {
+            document.getElementById('portfolioModal').classList.remove('active');
+            document.getElementById('portfolioForm').reset();
+        }
+
+        document.getElementById('portfolioForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const mode = this.getAttribute('data-mode');
+            const data = {
+                title: document.getElementById('portfolioTitle').value,
+                subject: document.getElementById('portfolioSubject').value,
+                description: document.getElementById('portfolioDescription').value,
+                link: document.getElementById('portfolioLink').value
+            };
+
+            if (mode === 'add') {
+                addPortfolioItem(data);
+            }
+            closePortfolioModal();
+            loadPortfolio();
+        });
+    </script>
+</body>
+</html>
